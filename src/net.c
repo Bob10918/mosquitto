@@ -360,6 +360,7 @@ int net__tls_server_ctx(struct mosquitto__listener *listener)
 	 * been generated using strong primes.
 	 */
 	SSL_CTX_set_options(listener->ssl_ctx, SSL_OP_SINGLE_DH_USE);
+    SSL_CTX_set1_groups_list(listener->ssl_ctx, listener->groups);
 
 #ifdef SSL_OP_NO_COMPRESSION
 	/* Disable compression */

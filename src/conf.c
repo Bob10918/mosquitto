@@ -285,6 +285,7 @@ void config__cleanup(struct mosquitto__config *config)
 			mosquitto__free(config->listeners[i].crlfile);
 			mosquitto__free(config->listeners[i].dhparamfile);
 			mosquitto__free(config->listeners[i].tls_version);
+            mosquitto__free(config->listeners[i].groups);
 			mosquitto__free(config->listeners[i].tls_engine);
 			mosquitto__free(config->listeners[i].tls_engine_kpass_sha1);
 #ifdef WITH_WEBSOCKETS
@@ -487,6 +488,7 @@ int config__parse_args(struct mosquitto__config *config, int argc, char *argv[])
 		config->listeners[config->listener_count-1].max_topic_alias = config->default_listener.max_topic_alias;
 #ifdef WITH_TLS
 		config->listeners[config->listener_count-1].tls_version = config->default_listener.tls_version;
+        config->listeners[config->listener_count-1].groups = config->default_listener.groups;
 		config->listeners[config->listener_count-1].tls_engine = config->default_listener.tls_engine;
 		config->listeners[config->listener_count-1].tls_keyform = config->default_listener.tls_keyform;
 		config->listeners[config->listener_count-1].tls_engine_kpass_sha1 = config->default_listener.tls_engine_kpass_sha1;
@@ -2029,6 +2031,13 @@ static int config__read_file_core(struct mosquitto__config *config, bool reload,
 					if(conf__parse_string(&token, "tls_version", &cur_listener->tls_version, saveptr)) return MOSQ_ERR_INVAL;
 #else
 					log__printf(NULL, MOSQ_LOG_WARNING, "Warning: TLS support not available.");
+#endif
+                }else if(!strcmp(token, "groups")){
+#if defined(WITH_TLS)
+                    if(reload) continue; /* Listeners not valid for reloading. */
+                    if(conf__parse_string(&token, "groups", &cur_listener->groups, saveptr)) return MOSQ_ERR_INVAL;
+#else
+                    log__printf(NULL, MOSQ_LOG_WARNING, "Warning: TLS support not available.");
 #endif
 				}else if(!strcmp(token, "topic")){
 #ifdef WITH_BRIDGE
